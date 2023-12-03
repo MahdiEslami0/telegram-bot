@@ -8,9 +8,9 @@ class BotController extends Controller
 {
 
 
-    public function test()
+    public function setWebhook()
     {
-        $response = Telegram::getUpdates();
+        $response = Telegram::setWebhook();
         return  $response;
     }
 }
