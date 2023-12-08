@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BotController;
+use Telegram\Bot\Laravel\Facades\Telegram;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,4 +16,8 @@ use App\Http\Controllers\BotController;
 |
 */
 
+Route::get('/test', [BotController::class, 'test']);
+Route::get('/deleteWebhook', [BotController::class, 'deleteWebhook']);
 Route::get('/setWebhook', [BotController::class, 'setWebhook']);
+
+Route::post('/InputHandel', [BotController::class, 'handleRequest']);

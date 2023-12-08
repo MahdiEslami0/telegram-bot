@@ -1,5 +1,6 @@
 <?php
 
+use App\Telegram\Commands\StartCommand;
 use Telegram\Bot\Commands\HelpCommand;
 
 return [
@@ -30,19 +31,11 @@ return [
     |                       Acme\Project\Commands\BotFather\ByeCommand::class,
     |             ]
     */
-    'bots' => [
-        'mybot' => [
-            'token' => env('TELEGRAM_BOT_TOKEN', 'YOUR-BOT-TOKEN'),
-            'certificate_path' => env('TELEGRAM_CERTIFICATE_PATH', 'YOUR-CERTIFICATE-PATH'),
-            'webhook_url' => env('TELEGRAM_WEBHOOK_URL', 'YOUR-BOT-WEBHOOK-URL'),
-            'commands' => [
-                //Acme\Project\Commands\MyTelegramBot\BotCommand::class
-            ],
-        ],
-
-        //        'mySecondBot' => [
-        //            'token' => '123456:abc',
-        //        ],
+    'bot' => [
+        'token' => env('TELEGRAM_BOT_TOKEN', 'YOUR-BOT-TOKEN'),
+        'certificate_path' => env('TELEGRAM_CERTIFICATE_PATH', 'YOUR-CERTIFICATE-PATH'),
+        'webhook_url' => env('TELEGRAM_WEBHOOK_URL', 'YOUR-BOT-WEBHOOK-URL'),
+        'commands' => [],
     ],
 
     /*
@@ -126,7 +119,7 @@ return [
     |
     */
     'commands' => [
-        HelpCommand::class,
+        StartCommand::class
     ],
 
     /*
@@ -187,8 +180,7 @@ return [
                 'status', // Shared Command Name.
                 'Acme\Project\Commands\BotCommand' // Full Path to Command Class.
            ],
-        */
-    ],
+        */],
 
     /*
     |--------------------------------------------------------------------------
