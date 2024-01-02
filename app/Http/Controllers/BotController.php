@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use GoogleSearchResults;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +20,7 @@ class BotController extends Controller
 
     public function handleRequest(Request $request)
     {
-        Log::info($request);
+        // Log::info($request);
         if (isset($request['inline_query'])) {
             $this->inline_query($request);
         } else {
@@ -28,7 +29,7 @@ class BotController extends Controller
                 $this->username = $request['message']['from']['username'];
                 $this->chat_type = $request['message']['chat']['type'];
                 $this->message_id = $request['message']['message_id'];
-                Log::info($this->chat_type);
+                // Log::info($this->chat_type);
                 if (isset($request['message']['reply_to_message'])) {
                     $this->reply_to_message = $request['message']['reply_to_message'];
                 }
@@ -65,54 +66,101 @@ class BotController extends Controller
         }
     }
 
+    // public function scrapeGoogleImages($query)
+    // {
+    //     $query = urlencode($query);
+    //     $url = "https://www.google.com/search?q={$query}&tbm=isch&safe=off"; // Add "&safe=off" to the URL
+
+    //     $ch = curl_init();
+    //     curl_setopt($ch, CURLOPT_URL, $url);
+    //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    //     curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+    //     $html = curl_exec($ch);
+    //     curl_close($ch);
+
+    //     $imageUrls = [];
+    //     if ($html) {
+    //         preg_match_all('/<img[^>]+src="([^">]+)"[^>]*>/', $html, $matches);
+
+    //         if (isset($matches[1])) {
+    //             $imageUrls = $matches[1];
+    //         }
+    //     }
+
+    //     return $imageUrls;
+    // }
+
     public function test()
     {
+        $searchQuery = "iran";
+        $imageUrls = $this->get_google_image($searchQuery);
 
-        return env('search_api_key');
+        return $imageUrls;
     }
 
 
     public function get_google_image($search)
     {
-        if ($search == null) {
-            $search = "not found";
-        }
-        $client = new Client();
 
-        $apiKey = env('search_api_key');
-        $url = 'https://serpapi.com/search.json?q=' . $search . '&location=Austin,+Texas,+United+States&google_domain=google.com&hl=en&api_key=' . $apiKey . '&engine=google_images';
-        $response = $client->request('GET', $url);
-        $statusCode = $response->getStatusCode();
-        if ($statusCode === 200) {
-            $body = $response->getBody();
-            $data = json_decode($body, true);
-            $imageResults = $data['images_results'] ?? [];
-            $responses = [];
-            $resultCount = 0; // Counter to limit the number of results
-
-            foreach ($imageResults as $imageResult) {
-                if ($resultCount >= 10) {
-                    break; // Break the loop if 10 results are reached
-                }
-
-                $thumbnailUrl = $imageResult['thumbnail'] ?? '';
-                $originalImageUrl = $imageResult['original'] ?? '';
-                // Check if the image URL ends with '.jpg' (case insensitive)
-                if ($thumbnailUrl !== '' && $originalImageUrl !== '' && preg_match('/\.jpg$/i', $originalImageUrl)) {
+        $apiKey = "AIzaSyDOUXFlrIwo9TYVYkQTkRGcBVRh3xbA6vg";
+        $cx = '7350f12854f224354';
+        $query = urlencode($search);
+        $url = "https://www.googleapis.com/customsearch/v1?key={$apiKey}&cx={$cx}&searchType=image&q={$query}";
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        $result = json_decode($response, true);
+        $responses = [];
+        if (isset($result['items'])) {
+            foreach ($result['items'] as $item) {
+                $imageUrl = $item['link'];
+                if (strtolower(pathinfo($imageUrl, PATHINFO_EXTENSION)) === 'jpg') {
                     $responses[] = [
                         'type' => 'photo',
                         'id' => uniqid(),
-                        'title' => $imageResult['title'] ?? '',
-                        'photo_url' => $originalImageUrl,
-                        'thumbnail_url' => $originalImageUrl
+                        'title' => $item['title'] ?? '',
+                        'photo_url' => $imageUrl,
+                        'thumbnail_url' => $imageUrl
                     ];
-                    $resultCount++; // Increment the counter
                 }
             }
-            return $responses;
-        } else {
-            return null;
         }
+        return $responses;
+
+        // if ($search == null) {
+        //     $search = "not found";
+        // }
+        // $url = "https://www.google.com/search?q=" . urlencode($search) . "&tbm=isch&safe=off";
+        // $ch = curl_init();
+        // curl_setopt($ch, CURLOPT_URL, $url);
+        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        // curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+        // $html = curl_exec($ch);
+        // curl_close($ch);
+        // $imageUrls = [];
+        // if ($html) {
+        //     preg_match_all('/<img[^>]+src="([^">]+)"[^>]*>/', $html, $matches);
+        //     if (isset($matches[1])) {
+        //         $imageUrls = $matches[1];
+        //     }
+        // }
+        // $responses = [];
+        // $resultCount = 0;
+        // foreach ($imageUrls as $imageUrl) {
+        //     if ($imageUrl !== '' && preg_match('/\.jpg$/i', $imageUrl)) {
+        //         $responses[] = [
+        //             'type' => 'photo',
+        //             'id' => uniqid(),
+        //             'title' => '',
+        //             'photo_url' => $imageUrl,
+        //             'thumbnail_url' => $imageUrl
+        //         ];
+        //         $resultCount++;
+        //     }
+        // }
+        // return $responses;
     }
 
 
@@ -167,7 +215,7 @@ class BotController extends Controller
                 'text' =>  'این پیام قابل حذف نیست',
                 'reply_to_message_id' => $this->message_id
             ]);
-            \Log::info($e);
+            // \Log::info($e);
         }
     }
 
